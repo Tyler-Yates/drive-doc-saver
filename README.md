@@ -1,6 +1,6 @@
 # drive-doc-saver
 
-![tox workflow](https://github.com/Tyler-Yates/youtube-like-saver/actions/workflows/tox-workflow.yml/badge.svg)
+![tox workflow](https://github.com/Tyler-Yates/drive-doc-saver/actions/workflows/tox-workflow.yml/badge.svg)
 
 Simple Python application to save Google Documents from Google Drive.
 
