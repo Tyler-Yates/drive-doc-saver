@@ -35,7 +35,7 @@ pip install -r requirements.txt
 
 Run the program from the root of the repository:
 ```
-python3 -m youtubelikesaver
+python3 -m drivedocsaver
 ```
 
 Open the link printed out to the console and go through the necessary steps until you can copy the credential string.
@@ -46,8 +46,4 @@ This file is in `.gitignore` so it should not be committed to the repository.
 On future executions of this program, the `credentials.pickle` file will be loaded, so you should not need to go through
 the OAuth flow again.
 
-If authentication is successful, the program will fetch your liked videos.
-After fetching the list of liked videos, the program will save the videos in a JSON file called `liked_videos.json`.
-This file is in `.gitignore` so it should not be committed to the repository.
-
-You can set the location to save `liked_videos.json` by using the environment variable `BACKUP_FILE_LOCATION`.
+TODO
