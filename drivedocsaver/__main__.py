@@ -30,6 +30,7 @@ def main():
     drive_files = drive_client.get_google_doc_files()
 
     print(f"Found {len(drive_files)} files to process...")
+    # TODO only download a file if the modified timestamp is different
     backup_files(drive_client, drive_files, backup_file_location)
 
 
