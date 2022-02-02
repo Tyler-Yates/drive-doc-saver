@@ -12,6 +12,9 @@ BACKUP_FILE_NAME = "liked_videos.json"
 FILE_RECORD_PICKLE_FILE_NAME = "file_records.pickle"
 
 
+# TODO handle files that get deleted from Google Drive. Do we delete them from local?
+
+# TODO also save file path so if files are moved we can detect that
 def read_file_record() -> Dict[str, str]:
     if os.path.exists(FILE_RECORD_PICKLE_FILE_NAME):
         with open(FILE_RECORD_PICKLE_FILE_NAME, "rb") as handle:
