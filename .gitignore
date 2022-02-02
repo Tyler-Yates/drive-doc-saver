@@ -4,6 +4,7 @@
 # Secrets
 client_secrets.json
 credentials.pickle
+file_records.pickle
 
 # Data
 /backup/

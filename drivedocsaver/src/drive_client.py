@@ -21,7 +21,7 @@ API_SERVICE_NAME = "drive"
 API_VERSION = "v3"
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 
-FILES_LIST_FIELDS = "nextPageToken,files(kind,id,name,trashed,mimeType,parents,exportLinks)"
+FILES_LIST_FIELDS = "nextPageToken,files(kind,id,name,trashed,mimeType,parents,exportLinks,modifiedTime)"
 
 # Reference: https://developers.google.com/drive/api/v3/mime-types
 MIME_TYPES_TO_PREFERRED_EXPORT_TYPE = {
@@ -100,15 +100,20 @@ class DriveClient:
         # TODO better error handling
         return re.findall('filename="(.+)"', response.headers.get("Content-Disposition"))[0]
 
-    def _download_file(self, file_url: str, backup_location: str):
-        # Tokens are very short-lived so we need to refresh them
+    def _download_file(self, file_url: str, drive_file: DriveFile, backup_location: str):
+        # Tokens are very short-lived so we need to refresh ours
         self.refresh_token()
 
         response = requests.get(
             file_url, allow_redirects=True, headers={"Authorization": f"Bearer {self.credentials.token}"}
         )
         file_name = self._get_filename_from_response(response)
-        with open(os.path.join(backup_location, file_name), "wb") as output_file:
+        file_path_without_leading_slash = drive_file.file_path.lstrip(os.path.sep)
+
+        backup_folder = os.path.join(backup_location, file_path_without_leading_slash)
+        os.makedirs(backup_folder, exist_ok=True)
+
+        with open(os.path.join(backup_folder, file_name), "wb") as output_file:
             output_file.write(response.content)
 
     def download_file(self, drive_file: DriveFile, backup_location: str):
@@ -116,7 +121,7 @@ class DriveClient:
         for preferred_export_type in preferred_export_types:
             if preferred_export_type in drive_file.export_links.keys():
                 file_url = drive_file.export_links[preferred_export_type]
-                self._download_file(file_url, backup_location)
+                self._download_file(file_url, drive_file, backup_location)
                 return
 
         raise ValueError("Could not find acceptable MIME type to download as!")
@@ -141,9 +146,12 @@ class DriveClient:
                 mime_type = file_json["mimeType"]
                 file_path = self.get_file_path(file_id)
                 export_links = file_json["exportLinks"]
+                modified_time = file_json["modifiedTime"]
 
                 print(f"Found file '{file_path}{file_name}' with MIME type {mime_type}")
-                google_doc_files.append(DriveFile(file_id, file_name, file_path, mime_type, export_links))
+                google_doc_files.append(
+                    DriveFile(file_id, file_name, file_path, mime_type, export_links, modified_time)
+                )
             if response.get("nextPageToken"):
                 response = (
                     self.gdrive.files()
