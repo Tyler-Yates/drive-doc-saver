@@ -125,7 +125,9 @@ class DriveClient:
     def _get_google_doc_files(self, mime_type: str):
         google_doc_files = []
         request = self.gdrive.files().list(
-            fields=FILES_LIST_FIELDS, pageSize=MAX_RESULTS, q=f"mimeType='{mime_type}' and 'me' in owners"
+            fields=FILES_LIST_FIELDS,
+            pageSize=MAX_RESULTS,
+            q=f"mimeType='{mime_type}' and 'me' in owners and trashed != true",
         )
         response = request.execute()
 
