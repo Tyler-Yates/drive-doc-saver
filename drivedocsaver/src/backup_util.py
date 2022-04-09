@@ -15,7 +15,7 @@ def backup_files(
     backup_path: str,
 ):
     processed_drive_file_paths = set()
-    files_changed_locally = []
+    files_moved_to_trash = []
     for drive_file in drive_files:
         file_export = get_file_export(backup_path, drive_file)
         processed_drive_file_paths.add(file_export.backup_file_path)
@@ -31,9 +31,12 @@ def backup_files(
             drive_client.download_file(file_export, drive_file)
             print("Done")
         else:
-            file_path = f"{drive_file.file_path}{drive_file.file_name}"
-            print(f"File exists locally but has been changed. Skipping '{file_path}'...")
-            files_changed_locally.append(file_path)
+            print(
+                f"File exists locally but is an old version (or changed locally). "
+                f"Moving '{file_export.backup_file_path}' to trash."
+            )
+            _move_file_to_trash(backup_path, file_export.backup_file_path)
+            files_moved_to_trash.append(file_export.backup_file_path)
 
     # Look for existing files that are no longer in Google Drive
     for root, dir_names, file_names in os.walk(backup_path):
@@ -45,6 +48,7 @@ def backup_files(
             if backup_file_path not in processed_drive_file_paths:
                 print(f"Found file on disk that is no longer in Google Drive: {backup_file_path}")
                 _move_file_to_trash(backup_path, backup_file_path)
+                files_moved_to_trash.append(backup_file_path)
 
     # Delete empty directories
     walk = list(os.walk(backup_path))
@@ -54,10 +58,10 @@ def backup_files(
             os.rmdir(path)
 
     # Print out files that we skipped due to local changes:
-    if len(files_changed_locally) > 0:
-        print("\nSkipped files:")
-    for file_path in files_changed_locally:
-        print(f"Skipped file '{file_path}' due to local changes.")
+    if len(files_moved_to_trash) > 0:
+        print("\nFiles moved to trash:")
+    for file_path in files_moved_to_trash:
+        print(f"'{file_path}'.")
 
 
 def _move_file_to_trash(backup_path: str, file_path: str):

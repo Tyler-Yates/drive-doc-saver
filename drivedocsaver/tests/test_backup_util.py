@@ -82,22 +82,17 @@ class TestBackupUtil:
             with open(file_export.backup_file_path, mode="w") as temp_file:
                 temp_file.write("test")
 
-            files_in_backup_start = set()
-            for root, dirs, files in os.walk(backup_path):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    files_in_backup_start.add(file_path)
-
             backup_files(drive_client, [drive_file], backup_path)
 
             # We should not make a call to download the file
             drive_client.download_file.assert_not_called()
 
-            # No files should change on disk
-            files_in_backup_end = set()
+            # The modified file should move to the trash
+            files_in_backup = []
             for root, dirs, files in os.walk(backup_path):
                 for file in files:
                     file_path = os.path.join(root, file)
-                    files_in_backup_end.add(file_path)
+                    files_in_backup.append(file_path)
 
-            assert files_in_backup_start == files_in_backup_end
+            assert 1 == len(files_in_backup)
+            assert (TRASH_PATH in files_in_backup[0]) and (drive_file.file_name in files_in_backup[0])
