@@ -50,7 +50,9 @@ def backup_files(
 
 
 def _move_file_to_trash(backup_path: str, file_path: str):
+    print(f"Backup path: {backup_path}")
     trash_path = os.path.join(backup_path, TRASH_PATH)
+    print(f"Trash path: {trash_path}")
     trash_file_path = os.path.join(trash_path, file_path.replace(f"{backup_path}/", ""))
 
     os.makedirs(os.path.dirname(trash_file_path), exist_ok=True)
