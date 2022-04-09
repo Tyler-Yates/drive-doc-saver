@@ -1,14 +1,14 @@
 import os.path
+import tempfile
 from unittest import mock
 
 from drivedocsaver.src.backup_util import backup_files, TRASH_PATH
-from drivedocsaver.tests.temporary_directory import TemporaryDirectory
 
 
 class TestBackupUtil:
     def test_backup_files_trash(self):
         drive_client = mock.Mock()
-        with TemporaryDirectory() as backup_path:
+        with tempfile.TemporaryDirectory() as backup_path:
             # Create a test file that does not exist in Google Drive
             temp_file_name = "temp.txt"
             tmp_file_path = os.path.join(backup_path, temp_file_name)
