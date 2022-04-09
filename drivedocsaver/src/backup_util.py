@@ -15,6 +15,7 @@ def backup_files(
     backup_path: str,
 ):
     processed_drive_file_paths = set()
+    files_downloaded = []
     files_moved_to_trash = []
     for drive_file in drive_files:
         file_export = get_file_export(backup_path, drive_file)
@@ -27,8 +28,9 @@ def backup_files(
         if modified_time_for_file_we_have == drive_file.modified_unix_timestamp:
             print(f"File '{drive_file.file_path}{drive_file.file_name}' already backed up.")
         elif modified_time_for_file_we_have is None:
-            print(f"Backing up file '{drive_file.file_path}{drive_file.file_name}'...", end="")
+            print(f"Backing up file '{file_export.backup_file_path}'...", end="")
             drive_client.download_file(file_export, drive_file)
+            files_downloaded.append(file_export.backup_file_path)
             print("Done")
         else:
             print(
@@ -37,6 +39,8 @@ def backup_files(
             )
             _move_file_to_trash(backup_path, file_export.backup_file_path)
             files_moved_to_trash.append(file_export.backup_file_path)
+            drive_client.download_file(file_export, drive_file)
+            files_downloaded.append(file_export.backup_file_path)
 
     # Look for existing files that are no longer in Google Drive
     for root, dir_names, file_names in os.walk(backup_path):
@@ -57,10 +61,16 @@ def backup_files(
             print(f"Removing empty directory {path}")
             os.rmdir(path)
 
-    # Print out files that we skipped due to local changes:
+    # Print out files that we moved to trash:
     if len(files_moved_to_trash) > 0:
         print("\nFiles moved to trash:")
     for file_path in files_moved_to_trash:
+        print(f"'{file_path}'.")
+
+    # Print out files that we downloaded:
+    if len(files_downloaded) > 0:
+        print("\nFiles downloaded:")
+    for file_path in files_downloaded:
         print(f"'{file_path}'.")
 
 

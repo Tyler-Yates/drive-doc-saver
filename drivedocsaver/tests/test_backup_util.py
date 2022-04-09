@@ -86,8 +86,8 @@ class TestBackupUtil:
 
             backup_files(drive_client, [drive_file], backup_path)
 
-            # We should not make a call to download the file
-            drive_client.download_file.assert_not_called()
+            # We should download the new version of the file
+            drive_client.download_file.assert_called_once_with(ANY, drive_file)
 
             # The modified file should move to the trash
             files_in_backup = []
@@ -96,5 +96,6 @@ class TestBackupUtil:
                     file_path = os.path.join(root, file)
                     files_in_backup.append(file_path)
 
+            # We mock file downloading so there should only be the file in the trash
             assert 1 == len(files_in_backup)
             assert (TRASH_PATH in files_in_backup[0]) and (drive_file.file_name in files_in_backup[0])
