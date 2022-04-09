@@ -7,8 +7,7 @@ import tempfile
 class TemporaryDirectory(object):
     def __init__(self):
         if "RUNNER_TEMP" in os.environ:
-            temporary_dir_path = os.path.join(os.environ["RUNNER_TEMP"],
-                                              str(random.randint(0, 9999999999999)))
+            temporary_dir_path = os.path.join(os.environ["RUNNER_TEMP"], str(random.randint(0, 9999999999999)))
             os.makedirs(temporary_dir_path)
             self.path = temporary_dir_path
         else:

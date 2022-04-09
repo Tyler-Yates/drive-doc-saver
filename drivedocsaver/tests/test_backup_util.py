@@ -1,6 +1,4 @@
 import os.path
-import random
-import tempfile
 from unittest import mock
 
 from drivedocsaver.src.backup_util import backup_files, TRASH_PATH
