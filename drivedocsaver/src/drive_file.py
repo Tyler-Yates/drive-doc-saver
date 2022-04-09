@@ -1,4 +1,5 @@
 import calendar
+import os.path
 from typing import Dict
 
 from dateutil import parser
@@ -17,7 +18,7 @@ class DriveFile:
     ):
         self.file_id = file_id
         self.file_name = file_name.replace("/", "").replace("\\", "")
-        self.file_path = file_path.lstrip("/")
+        self.file_path = file_path.lstrip("/").replace("/", os.path.sep)
         self.mime_type = mime_type
         self.export_links = export_links
         self.modified = modified
