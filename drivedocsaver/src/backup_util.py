@@ -63,6 +63,13 @@ def backup_files(
 def _move_file_to_trash(backup_path: str, file_path: str):
     trash_path = os.path.join(backup_path, TRASH_PATH)
     trash_file_path = os.path.join(trash_path, file_path.replace(f"{backup_path}{os.path.sep}", ""))
+    num = 1
+    while os.path.exists(trash_file_path):
+        base_trash_file_path = os.path.join(trash_path, file_path.replace(f"{backup_path}{os.path.sep}", ""))
+        file_path_parts = base_trash_file_path.rpartition(".")
+        trash_file_path = file_path_parts[0] + f"_{num}" + f".{file_path_parts[-1]}"
+        num += 1
+
     print(f"Moving file to {trash_file_path}")
 
     os.makedirs(os.path.dirname(trash_file_path), exist_ok=True)

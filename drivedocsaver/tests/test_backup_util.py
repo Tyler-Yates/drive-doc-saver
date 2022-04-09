@@ -30,6 +30,39 @@ class TestBackupUtil:
             # The file we created should have moved to the trash
             assert {os.path.join(backup_path, TRASH_PATH, temp_file_name)} == files_in_backup
 
+    def test_backup_files_trash_already_exists(self):
+        drive_client = mock.Mock()
+        with tempfile.TemporaryDirectory() as backup_path:
+            # Create a test file that does not exist in Google Drive
+            temp_file_name = "temp.txt"
+            tmp_file_path = os.path.join(backup_path, temp_file_name)
+            with open(tmp_file_path, mode="w") as temp_file:
+                temp_file.write("test")
+
+            expected_trash_location_1 = os.path.join(backup_path, TRASH_PATH, temp_file_name)
+            expected_trash_location_2 = os.path.join(backup_path, TRASH_PATH, "temp_1.txt")
+
+            # Create two files in the trash that will conflict with the file above
+            os.makedirs(os.path.dirname(expected_trash_location_1), exist_ok=True)
+            with open(expected_trash_location_1, mode="w") as temp_file:
+                temp_file.write("bob1")
+            with open(expected_trash_location_2, mode="w") as temp_file:
+                temp_file.write("bob2")
+
+            # The backup should move the file to the trash and auto-rename
+            backup_files(drive_client, [], backup_path)
+
+            files_in_backup = set()
+            for root, dirs, files in os.walk(backup_path):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    files_in_backup.add(file_path)
+
+            # The file we created should have moved to the trash and the existing two files in the trash should remain
+            assert expected_trash_location_1 in files_in_backup
+            assert expected_trash_location_2 in files_in_backup
+            assert len(files_in_backup) == 3
+
     def test_backup_files_normal(self):
         drive_client = mock.Mock()
         # Backup file that does not exist locally
