@@ -17,8 +17,16 @@ def backup_files(
     processed_drive_file_paths = set()
     files_downloaded = []
     files_moved_to_trash = []
+    file_name_conflicts = []
     for drive_file in drive_files:
         file_export = get_file_export(backup_path, drive_file)
+
+        # Google allows multiple files in the same folder with the same name
+        if file_export.backup_file_path in processed_drive_file_paths:
+            print(f"Two Google documents with the same file name in the same folder: {file_export.backup_file_path}")
+            file_name_conflicts.append(file_export.backup_file_path)
+            continue
+
         processed_drive_file_paths.add(file_export.backup_file_path)
 
         modified_time_for_file_we_have = None
@@ -71,6 +79,12 @@ def backup_files(
     if len(files_downloaded) > 0:
         print("\nFiles downloaded:")
     for file_path in files_downloaded:
+        print(f"'{file_path}'.")
+
+    # Print out files with the same name:
+    if len(file_name_conflicts) > 0:
+        print("\nFiles with name collision:")
+    for file_path in file_name_conflicts:
         print(f"'{file_path}'.")
 
 
