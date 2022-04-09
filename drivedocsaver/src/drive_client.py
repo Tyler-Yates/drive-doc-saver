@@ -12,6 +12,8 @@ from google.auth.credentials import Credentials
 from google.auth.exceptions import RefreshError
 
 from drivedocsaver.src.drive_file import DriveFile
+from drivedocsaver.src.file_export import FileExport
+from drivedocsaver.src.file_util import MIME_TYPES_TO_PREFERRED_EXPORT_TYPE
 
 MAX_RESULTS = 500
 
@@ -21,13 +23,7 @@ API_SERVICE_NAME = "drive"
 API_VERSION = "v3"
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 
-FILES_LIST_FIELDS = "nextPageToken,files(kind,id,name,trashed,mimeType,parents,exportLinks,modifiedTime)"
-
-# Reference: https://developers.google.com/drive/api/v3/mime-types
-MIME_TYPES_TO_PREFERRED_EXPORT_TYPE = {
-    "application/vnd.google-apps.document": ["application/vnd.oasis.opendocument.text", "application/pdf"],
-    "application/vnd.google-apps.spreadsheet": ["application/vnd.oasis.opendocument.spreadsheet", "text/csv"],
-}
+FILES_LIST_FIELDS = "nextPageToken,files(kind,id,name,trashed,mimeType,parents,exportLinks,modifiedTime,version)"
 
 
 class DriveClient:
@@ -100,31 +96,25 @@ class DriveClient:
         # TODO better error handling
         return re.findall('filename="(.+)"', response.headers.get("Content-Disposition"))[0]
 
-    def _download_file(self, file_url: str, drive_file: DriveFile, backup_location: str):
+    def _download_file(self, download_url: str, download_file_path: str, drive_file: DriveFile):
         # Tokens are very short-lived so we need to refresh ours
         self.refresh_token()
 
         response = requests.get(
-            file_url, allow_redirects=True, headers={"Authorization": f"Bearer {self.credentials.token}"}
+            download_url, allow_redirects=True, headers={"Authorization": f"Bearer {self.credentials.token}"}
         )
-        file_name = self._get_filename_from_response(response)
-        file_path_without_leading_slash = drive_file.file_path.lstrip(os.path.sep)
 
-        backup_folder = os.path.join(backup_location, file_path_without_leading_slash)
+        backup_folder = os.path.dirname(download_file_path)
         os.makedirs(backup_folder, exist_ok=True)
 
-        with open(os.path.join(backup_folder, file_name), "wb") as output_file:
+        with open(download_file_path, "wb") as output_file:
             output_file.write(response.content)
 
-    def download_file(self, drive_file: DriveFile, backup_location: str):
-        preferred_export_types = MIME_TYPES_TO_PREFERRED_EXPORT_TYPE.get(drive_file.mime_type, [])
-        for preferred_export_type in preferred_export_types:
-            if preferred_export_type in drive_file.export_links.keys():
-                file_url = drive_file.export_links[preferred_export_type]
-                self._download_file(file_url, drive_file, backup_location)
-                return
+        # Set the modified timestamp of the downloaded file to align with what Google reports
+        os.utime(download_file_path, (drive_file.modified_unix_timestamp, drive_file.modified_unix_timestamp))
 
-        raise ValueError("Could not find acceptable MIME type to download as!")
+    def download_file(self, file_export: FileExport, drive_file: DriveFile):
+        self._download_file(file_export.download_url, file_export.backup_file_path, drive_file)
 
     def get_google_doc_files(self):
         google_doc_files = []
@@ -147,10 +137,11 @@ class DriveClient:
                 file_path = self.get_file_path(file_id)
                 export_links = file_json["exportLinks"]
                 modified_time = file_json["modifiedTime"]
+                version = file_json["version"]
 
                 print(f"Found file '{file_path}{file_name}' with MIME type {mime_type}")
                 google_doc_files.append(
-                    DriveFile(file_id, file_name, file_path, mime_type, export_links, modified_time)
+                    DriveFile(file_id, file_name, file_path, mime_type, export_links, modified_time, version)
                 )
             if response.get("nextPageToken"):
                 response = (
