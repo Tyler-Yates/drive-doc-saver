@@ -16,7 +16,7 @@ class DriveFile:
         version: int,
     ):
         self.file_id = file_id
-        self.file_name = file_name
+        self.file_name = file_name.replace("/", "").replace("\\", "")
         self.file_path = file_path.lstrip("/")
         self.mime_type = mime_type
         self.export_links = export_links
