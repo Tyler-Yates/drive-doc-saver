@@ -3,12 +3,16 @@ from typing import List
 
 from drivedocsaver.src.drive_file import DriveFile
 
-# Reference: https://developers.google.com/drive/api/v3/mime-types
 from drivedocsaver.src.file_export import FileExport
 
+# References:
+# https://developers.google.com/drive/api/v3/mime-types
+# https://developers.google.com/drive/api/guides/ref-export-formats?hl=en
 MIME_TYPES_TO_PREFERRED_EXPORT_TYPE = {
     "application/vnd.google-apps.document": ["application/vnd.oasis.opendocument.text", "application/pdf"],
     "application/vnd.google-apps.spreadsheet": ["application/vnd.oasis.opendocument.spreadsheet", "text/csv"],
+    "application/vnd.google-apps.presentation": ["application/vnd.oasis.opendocument.presentation", "application/pdf"],
+    "application/vnd.google-apps.drawing": ["image/svg+xml", "image/png"],
 }
 
 MIME_TYPES_TO_FILE_EXTENSION = {
@@ -16,6 +20,9 @@ MIME_TYPES_TO_FILE_EXTENSION = {
     "application/pdf": "pdf",
     "application/vnd.oasis.opendocument.spreadsheet": "ods",
     "text/csv": "csv",
+    "application/vnd.oasis.opendocument.presentation": "otp",
+    "image/svg+xml": "svg",
+    "image/png": "png",
 }
 
 
