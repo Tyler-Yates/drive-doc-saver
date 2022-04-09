@@ -15,6 +15,7 @@ def backup_files(
     backup_path: str,
 ):
     processed_drive_file_paths = set()
+    files_changed_locally = []
     for drive_file in drive_files:
         file_export = get_file_export(backup_path, drive_file)
         processed_drive_file_paths.add(file_export.backup_file_path)
@@ -24,11 +25,15 @@ def backup_files(
             modified_time_for_file_we_have = int(os.path.getmtime(file_export.backup_file_path))
 
         if modified_time_for_file_we_have == drive_file.modified_unix_timestamp:
-            print(f"No modifications for file '{drive_file.file_path}{drive_file.file_name}'. Skipping.")
-        else:
+            print(f"File '{drive_file.file_path}{drive_file.file_name}' already backed up.")
+        elif modified_time_for_file_we_have is None:
             print(f"Backing up file '{drive_file.file_path}{drive_file.file_name}'...", end="")
             drive_client.download_file(file_export, drive_file)
             print("Done")
+        else:
+            file_path = f"{drive_file.file_path}{drive_file.file_name}"
+            print(f"File exists locally but has been changed. Skipping '{file_path}'...")
+            files_changed_locally.append(file_path)
 
     # Look for existing files that are no longer in Google Drive
     for root, dir_names, file_names in os.walk(backup_path):
@@ -47,6 +52,12 @@ def backup_files(
         if len(os.listdir(path)) == 0:
             print(f"Removing empty directory {path}")
             os.rmdir(path)
+
+    # Print out files that we skipped due to local changes:
+    if len(files_changed_locally) > 0:
+        print("\nSkipped files:")
+    for file_path in files_changed_locally:
+        print(f"Skipped file '{file_path}' due to local changes.")
 
 
 def _move_file_to_trash(backup_path: str, file_path: str):
