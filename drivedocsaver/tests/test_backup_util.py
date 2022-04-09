@@ -65,12 +65,14 @@ class TestBackupUtil:
 
     def test_backup_files_normal(self):
         drive_client = mock.Mock()
-        # Backup file that does not exist locally
-        drive_file = DRIVE_FILE_1
 
-        backup_files(drive_client, [drive_file], "backup")
+        with tempfile.TemporaryDirectory() as backup_path:
+            # Backup file that does not exist locally
+            drive_file = DRIVE_FILE_1
 
-        drive_client.download_file.assert_called_once_with(ANY, drive_file)
+            backup_files(drive_client, [drive_file], backup_path)
+
+            drive_client.download_file.assert_called_once_with(ANY, drive_file)
 
     def test_backup_files_local_modification(self):
         drive_client = mock.Mock()
