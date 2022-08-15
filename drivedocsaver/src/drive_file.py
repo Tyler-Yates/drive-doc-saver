@@ -19,7 +19,9 @@ class DriveFile:
     ):
         self.file_id = file_id
         self.file_name = self._slugify_file_name(file_name)
-        self.file_path = self._slugify_file_path(file_path.lstrip("/").replace("/", os.path.sep))
+        self.file_path = self._slugify_file_path(
+            file_path.lstrip("/").lstrip("\\").replace("/", os.path.sep).replace("\\", os.path.sep)
+        )
         self.mime_type = mime_type
         self.export_links = export_links
         self.modified = modified
@@ -36,4 +38,4 @@ class DriveFile:
     def _slugify_file_path(file_name: str) -> str:
         value = str(file_name)
         value = value.replace(":", " -")
-        return re.sub(r"[^\w\s/.-]", "", value)
+        return re.sub(r"[^\w\s/\\.-]", "", value)

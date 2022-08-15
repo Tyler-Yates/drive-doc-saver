@@ -35,6 +35,18 @@ class TestDriveFile:
         drive_file = DriveFile("id", "file", file_path, "mime", {}, "2022-01-01", 1)
         assert drive_file.file_path == os.path.sep.join(file_path_parts)
 
+    def test_file_path_valid_3(self):
+        file_path_parts = ["Test Directory", "Bob"]
+        file_path = "/" + "\\".join(file_path_parts)
+        drive_file = DriveFile("id", "file", file_path, "mime", {}, "2022-01-01", 1)
+        assert drive_file.file_path == os.path.sep.join(file_path_parts)
+
+    def test_file_path_valid_4(self):
+        file_path_parts = ["Test Directory", "Bob"]
+        file_path = "\\" + "\\".join(file_path_parts)
+        drive_file = DriveFile("id", "file", file_path, "mime", {}, "2022-01-01", 1)
+        assert drive_file.file_path == os.path.sep.join(file_path_parts)
+
     def test_file_path_invalid_1(self):
         file_path = "Test: With Colon"
         drive_file = DriveFile("id", "file", file_path, "mime", {}, "2022-01-01", 1)
