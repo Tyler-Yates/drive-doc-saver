@@ -33,13 +33,13 @@ def backup_files(
         if os.path.exists(file_export.backup_file_path):
             modified_time_for_file_we_have = int(os.path.getmtime(file_export.backup_file_path))
 
-        if modified_time_for_file_we_have == drive_file.modified_unix_timestamp:
-            print(f"File '{drive_file.file_path}{drive_file.file_name}' already backed up.")
-        elif modified_time_for_file_we_have is None:
+        if modified_time_for_file_we_have is None:
             print(f"Backing up file '{file_export.backup_file_path}'...", end="")
             drive_client.download_file(file_export, drive_file)
             files_downloaded.append(file_export.backup_file_path)
             print("Done")
+        elif abs(modified_time_for_file_we_have - drive_file.modified_unix_timestamp) <= 1:
+            print(f"File '{drive_file.file_path}{drive_file.file_name}' already backed up.")
         else:
             print(
                 f"File exists locally but is an old version (or changed locally). "
