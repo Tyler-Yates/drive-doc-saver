@@ -2,6 +2,7 @@ import os
 import shutil
 from typing import List
 
+from drivedocsaver.src.constants import EXPECTED_EMAIL_FILE_NAME
 from drivedocsaver.src.drive_client import DriveClient
 from drivedocsaver.src.drive_file import DriveFile
 from drivedocsaver.src.file_util import get_file_export
@@ -56,6 +57,9 @@ def backup_files(
             continue
 
         for file_name in file_names:
+            if EXPECTED_EMAIL_FILE_NAME == file_name:
+                continue
+
             backup_file_path = os.path.join(root, file_name)
             if backup_file_path not in processed_drive_file_paths:
                 print(f"Found file on disk that is no longer in Google Drive: {backup_file_path}")

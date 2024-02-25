@@ -27,7 +27,7 @@ FILES_LIST_FIELDS = "nextPageToken,files(kind,id,name,trashed,mimeType,parents,e
 
 
 class DriveClient:
-    def __init__(self, client_secrets_file_name: str):
+    def __init__(self, client_secrets_file_name: str, expected_email_address: Optional[str]):
         self.file_id_to_path = dict()
 
         # Disable OAuthlib's HTTPS verification when running locally.
@@ -58,6 +58,15 @@ class DriveClient:
 
         # Create the Drive client
         self.gdrive = googleapiclient.discovery.build(API_SERVICE_NAME, API_VERSION, credentials=self.credentials)
+
+        # Get the user email to make sure we're not using different users for the same folder
+        self.user_email = self.gdrive.about().get(fields="user").execute()["user"]["emailAddress"]
+        print(f"User email: {self.user_email!r}")
+        if expected_email_address and (self.user_email != expected_email_address):
+            raise ValueError(f"User email {self.user_email!r} does not match expected email {expected_email_address!r}")
+
+    def get_user_email(self) -> str:
+        return self.user_email
 
     def refresh_token(self):
         if self.credentials and self.credentials.expired and self.credentials.refresh_token:
